@@ -9,6 +9,6 @@
 
 #import "RCTBridgeModule.h"
 
-@interface RCTCameraRollManager : NSObject <RCTBridgeModule>
+@interface RCTCameraRollExtendedManager : NSObject <RCTBridgeModule>
 
 @end

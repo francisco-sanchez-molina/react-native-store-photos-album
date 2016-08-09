@@ -21,7 +21,7 @@
 #import "RCTUtils.h"
 
 
-@implementation RCTCameraRollManager
+@implementation RCTCameraRollExtendedManager
 
 RCT_EXPORT_MODULE()
 
