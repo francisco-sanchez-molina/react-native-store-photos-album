@@ -1,0 +1,26 @@
+{
+    "name": "react-native-store-photos-album",
+    "version": "0.0.1",
+    "description": "React-native camera roll extension to store photos in specific album",
+    "main": "index.js",
+    "author": {
+        "name": "Francisco Sanchez",
+        "email": "psm1984@gmail.com"
+    },
+    "license": "MIT",
+    "keywords": [
+        "react-native",
+        "react-component",
+        "ios",
+        "android",
+        "camera-roll"
+    ],
+    "homepage": "https://github.com/francisco-sanchez-molina/react-native-store-photos-album",
+    "bugs": {
+        "url": "https://github.com/francisco-sanchez-molina/react-native-store-photos-album/issues"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/francisco-sanchez-molina/react-native-store-photos-album.git"
+    }
+}
