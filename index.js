@@ -4,7 +4,7 @@ import {
 	CameraRoll
 } from 'react-native'
 
-var RCTCameraRollManager = require('NativeModules').CameraRollExtendedManager;
+var RCTCameraRollManager = NativeModules.CameraRollExtendedManager;
 
 class CameraRollExtended {
 

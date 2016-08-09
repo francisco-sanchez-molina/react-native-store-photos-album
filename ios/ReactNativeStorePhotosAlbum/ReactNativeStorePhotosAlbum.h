@@ -7,8 +7,20 @@
  * of patent rights can be found in the PATENTS file in the same directory.
  */
 
-#import "RCTBridgeModule.h"
+#import <AssetsLibrary/AssetsLibrary.h>
 
-@interface RCTCameraRollExtendedManager : NSObject <RCTBridgeModule>
+#import "RCTBridgeModule.h"
+#import "RCTConvert.h"
+
+@interface RCTConvert (ALAssetGroup)
+
++ (ALAssetsGroupType)ALAssetsGroupType:(id)json;
++ (ALAssetsFilter *)ALAssetsFilter:(id)json;
 
 @end
+
+
+@interface RCTCameraRollExtendedManager : NSObject <RCTBridgeModule>
+  //+(void)addAssetURL:(NSURL*)assetURL toAlbum:(NSString*)albumName withCompletionBlock:(void (^)(NSURL *assetURL, NSError* error))completionBlock;
+@end
+

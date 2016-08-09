@@ -7,7 +7,7 @@
  * of patent rights can be found in the PATENTS file in the same directory.
  */
 
-#import "RCTCameraRollManager.h"
+#import "ReactNativeStorePhotosAlbum.h"
 
 #import <CoreLocation/CoreLocation.h>
 #import <Foundation/Foundation.h>
@@ -27,8 +27,8 @@ RCT_EXPORT_MODULE()
 
 @synthesize bridge = _bridge;
 
-NSString *const RCTErrorUnableToLoad = @"E_UNABLE_TO_LOAD";
-NSString *const RCTErrorUnableToSave = @"E_UNABLE_TO_SAVE";
+NSString *const RCTRNSPAErrorUnableToLoad = @"E_UNABLE_TO_LOAD";
+NSString *const RCTRNSPAErrorUnableToSave = @"E_UNABLE_TO_SAVE";
 
 RCT_EXPORT_METHOD(saveToCameraRoll:(NSDictionary *)tag
                   type:(NSString *)type
@@ -36,12 +36,13 @@ RCT_EXPORT_METHOD(saveToCameraRoll:(NSDictionary *)tag
                   reject:(RCTPromiseRejectBlock)reject)
 {
   NSURLRequest *request = [RCTConvert NSURLRequest:tag[@"uri"]];
+  NSString * albumName = [RCTConvert NSString:tag[@"album"]];
   if ([type isEqualToString:@"video"]) {
     // It's unclear if writeVideoAtPathToSavedPhotosAlbum is thread-safe
     dispatch_async(dispatch_get_main_queue(), ^{
       [self->_bridge.assetsLibrary writeVideoAtPathToSavedPhotosAlbum:request.URL completionBlock:^(NSURL *assetURL, NSError *saveError) {
         if (saveError) {
-          reject(RCTErrorUnableToSave, nil, saveError);
+          reject(RCTRNSPAErrorUnableToSave, nil, saveError);
         } else {
           resolve(assetURL.absoluteString);
         }
@@ -51,7 +52,7 @@ RCT_EXPORT_METHOD(saveToCameraRoll:(NSDictionary *)tag
     [_bridge.imageLoader loadImageWithURLRequest:request
                                         callback:^(NSError *loadError, UIImage *loadedImage) {
       if (loadError) {
-        reject(RCTErrorUnableToLoad, nil, loadError);
+        reject(RCTRNSPAErrorUnableToLoad, nil, loadError);
         return;
       }
       // It's unclear if writeImageToSavedPhotosAlbum is thread-safe
@@ -59,11 +60,77 @@ RCT_EXPORT_METHOD(saveToCameraRoll:(NSDictionary *)tag
         [self->_bridge.assetsLibrary writeImageToSavedPhotosAlbum:loadedImage.CGImage metadata:nil completionBlock:^(NSURL *assetURL, NSError *saveError) {
           if (saveError) {
             RCTLogWarn(@"Error saving cropped image: %@", saveError);
-            reject(RCTErrorUnableToSave, nil, saveError);
+            reject(RCTRNSPAErrorUnableToSave, nil, saveError);
           } else {
-             [self addAssetURL: assetURL 
+
+            __block BOOL albumWasFound = NO;
+            void (^completionBlock)(NSError *error);
+            completionBlock = ^(NSError *error){};
+
+            [self->_bridge.assetsLibrary enumerateGroupsWithTypes:ALAssetsGroupAlbum 
+                        usingBlock:^(ALAssetsGroup *group, BOOL *stop) {
+ 
+                            //compare the names of the albums
+                            if ([albumName compare: [group valueForProperty:ALAssetsGroupPropertyName]]==NSOrderedSame) {
+                                
+                                //target album is found
+                                albumWasFound = YES;
+                                
+                                //get a hold of the photo's asset instance
+                                [self->_bridge.assetsLibrary assetForURL: assetURL 
+                                      resultBlock:^(ALAsset *asset) {
+                                                  
+                                          //add photo to the target album
+                                          [group addAsset: asset];
+                                          
+                                          //run the completion block
+                                          completionBlock(nil);
+                                          
+                                      } failureBlock: completionBlock];
+ 
+                                //album was found, bail out of the method
+                                return;
+                            }
+                            
+                            if (group==nil && albumWasFound==NO) {
+                                //photo albums are over, target album does not exist, thus create it
+                                
+                                 ALAssetsLibrary* weakSelf = self->_bridge.assetsLibrary;
+ 
+                                //create new assets album
+                                [self->_bridge.assetsLibrary addAssetsGroupAlbumWithName:albumName 
+                                                      resultBlock:^(ALAssetsGroup *group) {
+                                                                  
+                                                          //get the photo's instance
+                                                          [weakSelf assetForURL: assetURL 
+                                                                        resultBlock:^(ALAsset *asset) {
+ 
+                                                                            //add photo to the newly created album
+                                                                            [group addAsset: asset];
+                                                                            
+                                                                            //call the completion block
+                                                                            completionBlock(nil);
+ 
+                                                                        } failureBlock: completionBlock];
+                                                          
+                                                      } failureBlock: completionBlock];
+ 
+                                //should be the last iteration anyway, but just in case
+                                return;
+                            }
+                            
+                        } failureBlock: completionBlock];
+
+
+           /*  [self addAssetURL: assetURL 
                            toAlbum:tag[@"album"] 
-                        withCompletionBlock:completionBlock];
+                        withCompletionBlock:^(NSURL *assetURL, NSError *saveError) {
+        if (saveError) {
+          reject(RCTRNSPAErrorUnableToSave, nil, saveError);
+        } else {
+          resolve(assetURL.absoluteString);
+        }
+      }];*/
 
             resolve(assetURL.absoluteString);
           }
@@ -73,8 +140,8 @@ RCT_EXPORT_METHOD(saveToCameraRoll:(NSDictionary *)tag
   }
 }
 
-
--(void)addAssetURL:(NSURL*)assetURL toAlbum:(NSString*)albumName withCompletionBlock:(SaveImageCompletion)completionBlock
+/*
++(void)addAssetURL:(NSURL*)assetURL toAlbum:(NSString*)albumName withCompletionBlock:(void (^)(NSURL *assetURL))completionBlock
 {
     __block BOOL albumWasFound = NO;
     
@@ -134,8 +201,7 @@ RCT_EXPORT_METHOD(saveToCameraRoll:(NSDictionary *)tag
                         } failureBlock: completionBlock];
     
 }
- 
-
+ */
 
 
 
