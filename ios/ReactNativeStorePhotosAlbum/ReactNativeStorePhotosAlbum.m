@@ -55,6 +55,7 @@ RCT_EXPORT_METHOD(saveToCameraRoll:(NSDictionary *)tag
         reject(RCTRNSPAErrorUnableToLoad, nil, loadError);
         return;
       }
+                                            
       // It's unclear if writeImageToSavedPhotosAlbum is thread-safe
       dispatch_async(dispatch_get_main_queue(), ^{
         [self->_bridge.assetsLibrary writeImageToSavedPhotosAlbum:loadedImage.CGImage metadata:nil completionBlock:^(NSURL *assetURL, NSError *saveError) {
@@ -63,11 +64,20 @@ RCT_EXPORT_METHOD(saveToCameraRoll:(NSDictionary *)tag
             reject(RCTRNSPAErrorUnableToSave, nil, saveError);
           } else {
 
+            NSString * url = assetURL.absoluteString;
             __block BOOL albumWasFound = NO;
             void (^completionBlock)(NSError *error);
-            completionBlock = ^(NSError *error){};
+            completionBlock = ^(NSError *error){
+                if (error) {
+                    RCTLogWarn(@"Error save album image: %@", error);
+                    reject(RCTRNSPAErrorUnableToSave, nil, error);
+                } else {
+                    resolve(url);
+                }
+            };
 
-            [self->_bridge.assetsLibrary enumerateGroupsWithTypes:ALAssetsGroupAlbum 
+              
+            [self->_bridge.assetsLibrary enumerateGroupsWithTypes:ALAssetsGroupAlbum
                         usingBlock:^(ALAssetsGroup *group, BOOL *stop) {
  
                             //compare the names of the albums
@@ -132,7 +142,7 @@ RCT_EXPORT_METHOD(saveToCameraRoll:(NSDictionary *)tag
         }
       }];*/
 
-            resolve(assetURL.absoluteString);
+            
           }
         }];
       });
