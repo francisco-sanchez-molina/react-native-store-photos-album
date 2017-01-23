@@ -12,3 +12,5 @@ npm install francisco-sanchez-molina/react-native-store-photos-album --save
 import CameraRollExtended from 'react-native-store-photos-album'
 
 CameraRollExtended.saveToCameraRoll({uri: photoPath, album: 'Test'}, 'photo')
+
+version 0.1.0 add react-native 0.40 support

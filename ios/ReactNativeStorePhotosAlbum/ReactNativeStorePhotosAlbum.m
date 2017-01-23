@@ -14,11 +14,11 @@
 #import <UIKit/UIKit.h>
 
 #import "RCTAssetsLibraryRequestHandler.h"
-#import "RCTBridge.h"
-#import "RCTConvert.h"
-#import "RCTImageLoader.h"
-#import "RCTLog.h"
-#import "RCTUtils.h"
+#import <React/RCTBridge.h>
+#import <React/RCTConvert.h>
+#import <React/RCTImageLoader.h>
+#import <React/RCTLog.h>
+#import <React/RCTUtils.h>
 
 
 @implementation RCTCameraRollExtendedManager
