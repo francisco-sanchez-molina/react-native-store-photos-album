@@ -119,7 +119,8 @@ public class CameraRoll extends ReactContextBaseJavaModule {
   @ReactMethod
   public void saveToCameraRoll(ReadableMap tag, String type, Promise promise) {
     MediaType parsedType = type.equals("video") ? MediaType.VIDEO : MediaType.PHOTO;
-    new SaveToCameraRoll(getReactApplicationContext(), Uri.parse(tag.getString("uri")), tag.getString("album"), parsedType, promise)
+    String fileName = tag.hasKey("fileName") ? tag.getString("fileName") : null;
+    new SaveToCameraRoll(getReactApplicationContext(), Uri.parse(tag.getString("uri")), tag.getString("album"), fileName, parsedType, promise)
         .executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
   }
 
@@ -129,16 +130,18 @@ public class CameraRoll extends ReactContextBaseJavaModule {
     private final Context mContext;
     private final Uri mUri;
     private final String mAlbum;
+    private final String mFileName;
     private final Promise mPromise;
     private final MediaType mType;
 
-    public SaveToCameraRoll(ReactContext context, Uri uri, String album, MediaType type, Promise promise) {
+    public SaveToCameraRoll(ReactContext context, Uri uri, String album, String fileName, MediaType type, Promise promise) {
       super(context);
       mContext = context;
       mUri = uri;
       mAlbum = album;
       mPromise = promise;
       mType = type;
+      mFileName = fileName;
     }
 
     @Override
@@ -154,10 +157,11 @@ public class CameraRoll extends ReactContextBaseJavaModule {
         if (!exportDir.isDirectory()) {
           mPromise.reject(ERROR_UNABLE_TO_LOAD, "External media storage directory not available");
           return;
-        }
-        File dest = new File(exportDir, source.getName());
+        }        
+        String fullSourceName = mFileName == null ? source.getName() : mFileName;
+
+        File dest = new File(exportDir, fullSourceName);
         int n = 0;
-        String fullSourceName = source.getName();
         String sourceName, sourceExt;
         if (fullSourceName.indexOf('.') >= 0) {
           sourceName = fullSourceName.substring(0, fullSourceName.lastIndexOf('.'));
@@ -165,7 +169,7 @@ public class CameraRoll extends ReactContextBaseJavaModule {
         } else {
           sourceName = fullSourceName;
           sourceExt = "";
-        }
+        }        
         while (!dest.createNewFile()) {
           dest = new File(exportDir, sourceName + "_" + (n++) + sourceExt);
         }
