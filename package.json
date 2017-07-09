@@ -1,6 +1,6 @@
 {
     "name": "react-native-store-photos-album",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "description": "React-native camera roll extension to store photos in specific album",
     "main": "index.js",
     "author": {
